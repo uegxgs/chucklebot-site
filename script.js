@@ -1,55 +1,42 @@
+let recognition;
 
-const chatBox = document.getElementById("chat-box");
-const userInput = document.getElementById("user-input");
-const sendBtn = document.getElementById("send-btn");
-const voiceBtn = document.getElementById("voice-btn");
-const toggleThemeBtn = document.getElementById("toggle-theme");
+if ('webkitSpeechRecognition' in window) {
+    recognition = new webkitSpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
 
-let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
-
-function appendMessage(sender, message) {
-    const div = document.createElement("div");
-    div.innerHTML = `<strong>${sender}:</strong> ${message}`;
-    chatBox.appendChild(div);
-    chatBox.scrollTop = chatBox.scrollHeight;
-    chatHistory.push({ sender, message });
-    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
-}
-
-function botReply(input) {
-    const responses = [
-        "Why did the developer go broke? Because he used up all his cache! 😂",
-        "I'm ChuckleBot! Ask me anything — or hit me with a roast request! 🔥",
-        "Can’t help you with dating advice, but I can debug your heartbreak! 💔🤖",
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
-}
-
-sendBtn.addEventListener("click", () => {
-    const text = userInput.value.trim();
-    if (text) {
-        appendMessage("You", text);
-        const reply = botReply(text);
-        setTimeout(() => appendMessage("ChuckleBot", reply), 500);
-        userInput.value = "";
-    }
-});
-
-toggleThemeBtn.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-    document.body.classList.toggle("light");
-});
-
-voiceBtn.addEventListener("click", () => {
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = "en-US";
-    recognition.start();
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        userInput.value = transcript;
-        sendBtn.click();
+    recognition.onresult = function(event) {
+        let transcription = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            transcription += event.results[i][0].transcript;
+        }
+        document.getElementById('transcription').textContent = transcription;
     };
-});
+} else {
+    alert('Speech recognition is not supported in this browser');
+}
 
-// Load chat history
-chatHistory.forEach(msg => appendMessage(msg.sender, msg.message));
+let darkMode = false;
+
+function toggleTheme() {
+    darkMode = !darkMode;
+    if (darkMode) {
+        document.body.classList.remove('light-mode');
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+        document.body.classList.add('light-mode');
+    }
+}
+
+function startListening() {
+    recognition.start();
+}
+
+function showLoading() {
+    document.getElementById('loadingScreen').style.visibility = 'visible';
+}
+
+function hideLoading() {
+    document.getElementById('loadingScreen').style.visibility = 'hidden';
+}
